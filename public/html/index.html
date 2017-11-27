@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sockets</title>
+    <link rel="stylesheet" href="../css/chat.css">
+    <link rel="stylesheet" href="../css/login.css">
+    
+    <style>
+        #mainwrapper {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="loginwrapper">
+        <div class="login-page">
+            <div class="form">
+                <form id="login-form" class="login-form">
+                    <input id="username" type="text" placeholder="Username"/>
+                    <input type="submit" id="login-button" value="Login">
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div id="mainwrapper">
+        <div class="menu">
+            <div class="back"><i class="fa fa-chevron-left"></i> <img src="https://i.imgur.com/DY6gND0.png" draggable="false"/></div>
+            <div id="name" class="name">Alex</div>
+            <div id="date" class="last">18:09</div>
+        </div>
+
+        <ol id="chat-window" class="chat">
+        </ol>
+
+        <form id="message-form">
+            <input id="message" class="textarea" type="text" placeholder="Type here!"/>
+            <div class="emojis"></div>
+            <input type="submit" class="send" value="Send">
+        </form>
+    </div>
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        $(document).ready(function() {
+            
+        $(function(){
+            var socket = io.connect();
+            var messageForm = $("#message-form");
+            var message = $("#message");
+            var chatWindow = $("#chat-window");
+            var loginForm = $("#login-form");
+            var username = $("#username");
+
+            loginForm.submit(function(e) {
+                e.preventDefault();
+
+                if(username.val() == "") {
+                    alert('Provide a username');
+                } else {
+                    $("#name").html(username.val());
+                    $("#date").html(new Date());
+                    $("#loginwrapper").css("display", "none");
+                    $("#mainwrapper").css("display", "block");
+                    $("body").css("background", "#e5e5e5");
+                    
+                    socket.emit("new user", username.val());
+                }
+            });
+
+            messageForm.submit(function(e) {
+                e.preventDefault();
+                socket.emit('send message', message.val());
+                message.val("");
+            });
+
+            socket.on('new message', function(data) {  
+                var listItem = document.createElement("li");
+                
+                if(data.username == username.val()) {
+                    listItem.className = "other";
+                } else {
+                    listItem.className = "self";
+                }
+                
+
+                var image = document.createElement("img");
+                image.src = "https://i.imgur.com/DY6gND0.png";
+                image.draggable = false;
+
+                var imageDiv = document.createElement("div");
+                imageDiv.className = "avatar";
+                imageDiv.append(image);
+
+                var messageDiv = document.createElement("div");
+                messageDiv.className = "msg";
+
+                var message = document.createElement("p");
+                var text = document.createTextNode(data.message);
+                message.appendChild(text);
+
+                var time = document.createElement("time");
+                var newTime = document.createTextNode(new Date());
+                time.appendChild(newTime);
+
+                messageDiv.appendChild(message);
+                messageDiv.appendChild(time);
+                listItem.appendChild(imageDiv);
+                listItem.appendChild(messageDiv);
+
+                chatWindow.append(listItem);
+            });
+        });
+            
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
